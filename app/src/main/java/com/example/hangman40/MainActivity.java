@@ -3,13 +3,14 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ImageView;
-
+import android.media.MediaPlayer;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -23,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_HIGH_SCORE = "highScore";
 
     private String[] words = {"ex"};
+
+
     private String currentWord;
     private String hiddenWord;
     private int attemptsLeft;
@@ -48,10 +51,18 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private ImageView imageView;
+
+    private HangmanDatabaseHelper dbHelper;
+    private SQLiteDatabase db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        dbHelper = new HangmanDatabaseHelper(this);
+        db = dbHelper.getWritableDatabase();
+        dbHelper.importDataFromCSV(db, "hangmandata.csv");
 
         tvHiddenWord = findViewById(R.id.tvHiddenWord);
         tvIncorrectGuesses = findViewById(R.id.tvIncorrectGuesses);
@@ -60,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
         btnSubmit = findViewById(R.id.btnSubmit);
         tvScore = findViewById(R.id.tvScore);
         imageView = findViewById(R.id.imageView);
+
+
 
         // Display the initial score at the beginning of the game
         score = 0;
@@ -127,22 +140,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
     private void submitGuess(String guess) {
+        MediaPlayer mediaPlayer;
+
         if (currentWord.contains(guess)) {
             updateHiddenWord(guess);
+
+            // Play the sound for guessing a single letter correctly
+            mediaPlayer = MediaPlayer.create(this, R.raw.correct_letter);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    // Release the MediaPlayer resources once the sound has finished playing
+                    mp.release();
+                }
+            });
+            mediaPlayer.start();
         } else {
             attemptsLeft--;
             tvIncorrectGuesses.append(guess + " ");
 
             // Update the hangman image
             imageView.setImageResource(hangmanImages[6 - attemptsLeft]);
+
+            // Play the sound for a wrong guess
+            mediaPlayer = MediaPlayer.create(this, R.raw.wrong_guess);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    // Release the MediaPlayer resources once the sound has finished playing
+                    mp.release();
+                }
+            });
+            mediaPlayer.start();
         }
         checkGameStatus();
 
         // Clear the input field
         etGuess.getText().clear();
     }
-
 
 
     private void updateHiddenWord(String guess) {
@@ -173,9 +210,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkGameStatus() {
+        MediaPlayer mediaPlayer;
+
         if (hiddenWord.equals(currentWord)) {
             tvMessage.setText("You won!");
             btnSubmit.setEnabled(false);
+
+            // Play the sound for guessing the entire word correctly
+            mediaPlayer = MediaPlayer.create(this, R.raw.word_guessed);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    // Release the MediaPlayer resources once the sound has finished playing
+                    mp.release();
+                }
+            });
+            mediaPlayer.start();
 
             score++;
             tvScore.setText("Score: " + score);
