@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_SCORE = "score";
     private static final String KEY_HIGH_SCORE = "highScore";
 
-    private String[] words = {"example", "hangman", "android", "studio"};
+    private String[] words = {"ex"};
     private String currentWord;
     private String hiddenWord;
     private int attemptsLeft;
@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView imageView;
     @Override
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -61,10 +60,19 @@ public class MainActivity extends AppCompatActivity {
         btnSubmit = findViewById(R.id.btnSubmit);
         tvScore = findViewById(R.id.tvScore);
         imageView = findViewById(R.id.imageView);
+
+        // Display the initial score at the beginning of the game
+        score = 0;
+        tvScore.setText("Score: " + score);
+
         Button btnReset = findViewById(R.id.btnReset);
         btnReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Reset the score to 0 and update the score display
+                score = 0;
+                tvScore.setText("Score: " + score);
+
                 initializeGame();
             }
         });
@@ -93,15 +101,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeGame() {
-        if (score > 0) {
-            if (score > highScore) {
-                highScore = score;
-                SharedPreferences prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putInt(KEY_HIGH_SCORE, highScore);
-                editor.apply();
-            }
+        if (attemptsLeft <= 0) {
+
         }
+
+        if (score > highScore) {
+            highScore = score;
+            SharedPreferences prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt(KEY_HIGH_SCORE, highScore);
+            editor.apply();
+        }
+
         Random random = new Random();
         currentWord = words[random.nextInt(words.length)];
         hiddenWord = new String(new char[currentWord.length()]).replace("\0", "-");
@@ -112,7 +123,9 @@ public class MainActivity extends AppCompatActivity {
         tvMessage.setText("");
         etGuess.setText("");
         btnSubmit.setEnabled(true);
+        imageView.setImageResource(hangmanImages[0]);
     }
+
 
     private void submitGuess(String guess) {
         if (currentWord.contains(guess)) {
