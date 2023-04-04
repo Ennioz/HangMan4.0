@@ -1,8 +1,12 @@
 package com.example.hangman40;
+import static com.example.hangman40.HangmanDatabaseHelper.COLUMN_WORD;
+import static com.example.hangman40.HangmanDatabaseHelper.TABLE_NAME;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
@@ -11,6 +15,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.media.MediaPlayer;
+
+import java.util.ArrayList;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -23,9 +29,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_SCORE = "score";
     private static final String KEY_HIGH_SCORE = "highScore";
 
-    private String[] words = {"ex"};
+    //private String[] words = {"ex"};
 
-
+    private ArrayList<String> wordsList = new ArrayList<>();
     private String currentWord;
     private String hiddenWord;
     private int attemptsLeft;
@@ -63,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
         dbHelper = new HangmanDatabaseHelper(this);
         db = dbHelper.getWritableDatabase();
         dbHelper.importDataFromCSV(db, "hangmandata.csv");
+
+
 
         tvHiddenWord = findViewById(R.id.tvHiddenWord);
         tvIncorrectGuesses = findViewById(R.id.tvIncorrectGuesses);
@@ -126,8 +134,21 @@ public class MainActivity extends AppCompatActivity {
             editor.apply();
         }
 
+        // Retrieve words from database
+        ArrayList<String> wordsList = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_WORD + " FROM " + TABLE_NAME, null);
+        if (cursor.moveToFirst()) {
+            do {
+                String word = cursor.getString(0);
+                wordsList.add(word);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        // Use random word from ArrayList
         Random random = new Random();
-        currentWord = words[random.nextInt(words.length)];
+        currentWord = wordsList.get(random.nextInt(wordsList.size()));
+
         hiddenWord = new String(new char[currentWord.length()]).replace("\0", "-");
         attemptsLeft = 6;
 
@@ -227,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
             });
             mediaPlayer.start();
 
-            score++;
+            score+=100;
             tvScore.setText("Score: " + score);
             initializeGame();
             if (score > highScore) {

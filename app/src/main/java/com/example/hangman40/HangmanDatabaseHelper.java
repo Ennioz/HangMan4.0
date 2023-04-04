@@ -14,8 +14,8 @@ public class HangmanDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "HangManXX.db";
     private static final int DATABASE_VERSION = 1;
-    private static final String TABLE_NAME = "words";
-    private static final String COLUMN_WORD = "word";
+    public static final String TABLE_NAME = "words";
+    public static final String COLUMN_WORD = "word";
     private static final String COLUMN_HINT = "hint";
 
     private final Context mContext;
@@ -66,6 +66,7 @@ public class HangmanDatabaseHelper extends SQLiteOpenHelper {
                 String insertQuery = "INSERT INTO " + TABLE_NAME + " ( " + COLUMN_WORD + ", " + COLUMN_HINT + ") " +
                         "VALUES ('" + word + "', '" + hint + "')";
                 db.execSQL(insertQuery);
+                Log.d("Hangman", "Inserted word: " + word + ", hint: " + hint);
             }
         } catch (IOException e) {
             Log.e("Hangman", "Error reading CSV file: " + e.getMessage());

@@ -1,6 +1,7 @@
 
 package com.example.hangman40;
 
+
 public class hangmanwords {
     private int id;
     private String word;
