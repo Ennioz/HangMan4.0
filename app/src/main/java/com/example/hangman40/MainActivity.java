@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         tvMessage.setText("");
         etGuess.setText("");
         btnSubmit.setEnabled(true);
+        imageView.setImageResource(hangmanImages[0]);
     }
 
     private void submitGuess(String guess) {

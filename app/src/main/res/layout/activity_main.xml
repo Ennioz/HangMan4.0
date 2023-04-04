@@ -15,12 +15,6 @@
         android:textSize="24sp"
         android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/etGuess"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter a letter"
-        android:inputType="text" />
 
     <TextView
         android:id="@+id/tvMessage"
@@ -28,12 +22,36 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:layout_marginTop="16dp" />
-
     <Button
-        android:id="@+id/btnSubmit"
+        android:id="@+id/btnReset"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="Reset" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit" />
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <EditText
+            android:id="@+id/etGuess"
+            android:layout_marginRight="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:hint="Enter a letter"
+            android:inputType="text" />
+
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit" />
+
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvIncorrectGuesses"
@@ -42,12 +60,6 @@
         android:textSize="18sp"
         android:layout_marginTop="16dp" />
 
-    <Button
-        android:id="@+id/btnReset"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Reset"
-        android:layout_marginTop="16dp" />
 
     <Button
         android:id="@+id/btnHighScore"
