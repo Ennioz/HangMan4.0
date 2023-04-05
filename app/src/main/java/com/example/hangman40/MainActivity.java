@@ -9,12 +9,15 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.media.MediaPlayer;
+
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -240,10 +243,26 @@ public class MainActivity extends AppCompatActivity {
         tvHiddenWord.setText(hiddenWord);
     }
 
-    private void showResultDialog(String title, String message) {
+    private void showResultDialog(String title, String message, boolean isWinner) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(title);
         builder.setMessage(message);
+
+        // Inflate the custom layout containing the ImageView
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_result, null);
+        ImageView imageView = view.findViewById(R.id.imageView);
+
+        // Load a random GIF based on whether the player won or lost
+        int gifId;
+        if (isWinner) {
+            gifId = getResources().getIdentifier("win_gif_" + (new Random().nextInt(7) + 1), "raw", getPackageName());
+        } else {
+            gifId = getResources().getIdentifier("lose_gif_" + (new Random().nextInt(13) + 1), "raw", getPackageName());
+        }
+        Glide.with(this).load(gifId).into(imageView);
+
+        builder.setView(view);
+
         builder.setPositiveButton("OK", null);
         builder.setNegativeButton("Reset", new DialogInterface.OnClickListener() {
             @Override
@@ -255,6 +274,8 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
+
 
     private void checkGameStatus() {
         MediaPlayer mediaPlayer;
@@ -276,7 +297,6 @@ public class MainActivity extends AppCompatActivity {
 
             score+=100;
             tvScore.setText("Score: " + score);
-            initializeGame();
             if (score > highScore) {
                 highScore = score;
                 SharedPreferences prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
@@ -285,17 +305,20 @@ public class MainActivity extends AppCompatActivity {
                 editor.apply();
             }
 
-            showResultDialog("Congratulations!", "You won!");
+            // Show a dialog with a random "winner" GIF
+            showResultDialog("Congratulations!", "You won!", true);
         } else if (attemptsLeft <= 0) {
             tvMessage.setText("You lost! The word was: " + currentWord);
             tvScore.setText("Score: " + score);
             btnSubmit.setEnabled(false);
 
-            showResultDialog("Sorry!", "You lost! The word was: " + currentWord);
+            // Show a dialog with a random "loser" GIF
+            showResultDialog("Sorry!", "You lost! The word was: " + currentWord, false);
         } else {
             tvMessage.setText("Attempts left: " + attemptsLeft);
         }
     }
+
     private void showHighScoreDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("High Score");
