@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_HIDDEN_WORD = "hiddenWord";
     private static final String KEY_ATTEMPTS_LEFT = "attemptsLeft";
     private static final String KEY_INCORRECT_GUESSES = "incorrectGuesses";
+    private SharedPreferences prefs;
     private static final String KEY_SCORE = "score";private static final String KEY_HIGH_SCORE = "highScore";
     //private String[] words = {"ex"};
     private ArrayList<String> wordsList = new ArrayList<>();private String currentWord;private String hiddenWord;private String currentHint;private int attemptsLeft;private int score;private int highScore;private TextView tvHiddenWord;private TextView tvIncorrectGuesses;private TextView tvMessage;private EditText etGuess;private Button btnSubmit;private TextView tvScore;private int[] hangmanImages = {
@@ -38,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
             R.drawable.hangman_3,
             R.drawable.hangman_4,
             R.drawable.hangman_5,
-            R.drawable.hangman_6
+            R.drawable.hangman_6,
+            R.drawable.hangman_7
     };
     private ImageView imageView;
     private HangmanDatabaseHelper dbHelper;private SQLiteDatabase db;
@@ -51,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+
+
 
         dbHelper = new HangmanDatabaseHelper(this);
         db = dbHelper.getWritableDatabase();
@@ -124,17 +129,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeGame() {
-        if (attemptsLeft <= 0) {
+        // Remove the lines resetting the score to 0
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(KEY_SCORE, score);
+        editor.apply();
 
-        }
-
-        if (score > highScore) {
-            highScore = score;
-            SharedPreferences prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putInt(KEY_HIGH_SCORE, highScore);
-            editor.apply();
-        }
         // Retrieve words and hints from the database
         ArrayList<String[]> wordAndHintList = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT " + COLUMN_WORD + ", " + HangmanDatabaseHelper.COLUMN_HINT + " FROM " + TABLE_NAME, null);
@@ -154,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
         currentHint = wordAndHintList.get(selectedIndex)[1];
 
         hiddenWord = new String(new char[currentWord.length()]).replace("\0", "-");
-        attemptsLeft = 6;
+        attemptsLeft = 7;
 
         tvHiddenWord.setText(hiddenWord);
         tvIncorrectGuesses.setText("");
@@ -163,7 +162,6 @@ public class MainActivity extends AppCompatActivity {
         btnSubmit.setEnabled(true);
         imageView.setImageResource(hangmanImages[0]);
     }
-
 
 
     private void submitGuess(String guess) {
@@ -187,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
             tvIncorrectGuesses.append(guess + " ");
 
             // Update the hangman image
-            imageView.setImageResource(hangmanImages[6 - attemptsLeft]);
+            imageView.setImageResource(hangmanImages[7 - attemptsLeft]);
 
             // Play the sound for a wrong guess
             mediaPlayer = MediaPlayer.create(this, R.raw.wrong_guess);
@@ -231,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
         int gifId;
         if (isWinner) {
             gifId = getResources().getIdentifier("win_gif_" + (new Random().nextInt(7) + 1), "raw", getPackageName());
+            // Remove the extra score increment line
         } else {
             gifId = getResources().getIdentifier("lose_gif_" + (new Random().nextInt(13) + 1), "raw", getPackageName());
         }
@@ -238,10 +237,21 @@ public class MainActivity extends AppCompatActivity {
 
         builder.setView(view);
 
-        builder.setPositiveButton("OK", null);
+        if (isWinner) {
+            builder.setPositiveButton("Resume", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    initializeGame();
+                }
+            });
+        } else {
+            builder.setPositiveButton("OK", null);
+        }
         builder.setNegativeButton("Reset", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                score = 0; // Reset the score
+                tvScore.setText("Score: " + score);
                 initializeGame();
             }
         });
@@ -252,12 +262,26 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
     private void checkGameStatus() {
         MediaPlayer mediaPlayer;
 
         if (hiddenWord.equals(currentWord)) {
             tvMessage.setText("You won!");
             btnSubmit.setEnabled(false);
+
+            // Add 100 points to the score when the player wins
+            score += 100;
+
+            // Update the score TextView
+            tvScore.setText("Score: " + score);
+
+            if (score > highScore) {
+                highScore = score;
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putInt(KEY_HIGH_SCORE, highScore);
+                editor.apply();
+            }
 
             // Play the sound for guessing the entire word correctly
             mediaPlayer = MediaPlayer.create(this, R.raw.word_guessed);
@@ -270,16 +294,6 @@ public class MainActivity extends AppCompatActivity {
             });
             mediaPlayer.start();
 
-            score+=100;
-            tvScore.setText("Score: " + score);
-            if (score > highScore) {
-                highScore = score;
-                SharedPreferences prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putInt(KEY_HIGH_SCORE, highScore);
-                editor.apply();
-            }
-
             // Show a dialog with a random "winner" GIF
             showResultDialog("Congratulations!", "You won!", true);
         } else if (attemptsLeft <= 0) {
@@ -287,12 +301,23 @@ public class MainActivity extends AppCompatActivity {
             tvScore.setText("Score: " + score);
             btnSubmit.setEnabled(false);
 
+            // Play the sound for losing the game
+            mediaPlayer = MediaPlayer.create(this, R.raw.game_over_sound);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    // Release the MediaPlayer resources once the sound has finished playing
+                    mp.release();
+                }
+            });
+            mediaPlayer.start();
             // Show a dialog with a random "loser" GIF
             showResultDialog("Sorry!", "You lost! The word was: " + currentWord, false);
         } else {
             tvMessage.setText("Attempts left: " + attemptsLeft);
         }
     }
+
 
     private void showHighScoreDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
