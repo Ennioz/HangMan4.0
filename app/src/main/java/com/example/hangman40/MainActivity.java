@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> wordsList = new ArrayList<>();
     private String currentWord;
     private String hiddenWord;
+
+    private String currentHint;
     private int attemptsLeft;
     private int score;
     private int highScore;
@@ -94,7 +96,17 @@ public class MainActivity extends AppCompatActivity {
                 score = 0;
                 tvScore.setText("Score: " + score);
 
+
+
                 initializeGame();
+            }
+        });
+
+        Button btnHint = findViewById(R.id.btnHint);
+        btnHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showHintDialog();
             }
         });
 
@@ -120,6 +132,15 @@ public class MainActivity extends AppCompatActivity {
 
         initializeGame();
     }
+    private void showHintDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Hint");
+        builder.setMessage(currentHint);
+        builder.setPositiveButton("OK", null);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
     private void initializeGame() {
         if (attemptsLeft <= 0) {
@@ -133,21 +154,23 @@ public class MainActivity extends AppCompatActivity {
             editor.putInt(KEY_HIGH_SCORE, highScore);
             editor.apply();
         }
-
-        // Retrieve words from database
-        ArrayList<String> wordsList = new ArrayList<>();
-        Cursor cursor = db.rawQuery("SELECT " + COLUMN_WORD + " FROM " + TABLE_NAME, null);
+        // Retrieve words and hints from the database
+        ArrayList<String[]> wordAndHintList = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_WORD + ", " + HangmanDatabaseHelper.COLUMN_HINT + " FROM " + TABLE_NAME, null);
         if (cursor.moveToFirst()) {
             do {
                 String word = cursor.getString(0);
-                wordsList.add(word);
+                String hint = cursor.getString(1);
+                wordAndHintList.add(new String[]{word, hint});
             } while (cursor.moveToNext());
         }
         cursor.close();
 
-        // Use random word from ArrayList
+        // Use random word and hint from ArrayList
         Random random = new Random();
-        currentWord = wordsList.get(random.nextInt(wordsList.size()));
+        int selectedIndex = random.nextInt(wordAndHintList.size());
+        currentWord = wordAndHintList.get(selectedIndex)[0];
+        currentHint = wordAndHintList.get(selectedIndex)[1];
 
         hiddenWord = new String(new char[currentWord.length()]).replace("\0", "-");
         attemptsLeft = 6;

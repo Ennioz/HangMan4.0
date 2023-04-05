@@ -16,7 +16,7 @@ public class HangmanDatabaseHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     public static final String TABLE_NAME = "words";
     public static final String COLUMN_WORD = "word";
-    private static final String COLUMN_HINT = "hint";
+    public static final String COLUMN_HINT = "hint";
 
     private final Context mContext;
 
