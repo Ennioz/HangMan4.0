@@ -29,29 +29,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_HIDDEN_WORD = "hiddenWord";
     private static final String KEY_ATTEMPTS_LEFT = "attemptsLeft";
     private static final String KEY_INCORRECT_GUESSES = "incorrectGuesses";
-    private static final String KEY_SCORE = "score";
-    private static final String KEY_HIGH_SCORE = "highScore";
-
+    private static final String KEY_SCORE = "score";private static final String KEY_HIGH_SCORE = "highScore";
     //private String[] words = {"ex"};
-
-    private ArrayList<String> wordsList = new ArrayList<>();
-    private String currentWord;
-    private String hiddenWord;
-
-    private String currentHint;
-    private int attemptsLeft;
-    private int score;
-    private int highScore;
-
-    private TextView tvHiddenWord;
-    private TextView tvIncorrectGuesses;
-    private TextView tvMessage;
-    private EditText etGuess;
-    private Button btnSubmit;
-
-    private TextView tvScore;
-
-    private int[] hangmanImages = {
+    private ArrayList<String> wordsList = new ArrayList<>();private String currentWord;private String hiddenWord;private String currentHint;private int attemptsLeft;private int score;private int highScore;private TextView tvHiddenWord;private TextView tvIncorrectGuesses;private TextView tvMessage;private EditText etGuess;private Button btnSubmit;private TextView tvScore;private int[] hangmanImages = {
             R.drawable.hangman_0,
             R.drawable.hangman_1,
             R.drawable.hangman_2,
@@ -60,11 +40,9 @@ public class MainActivity extends AppCompatActivity {
             R.drawable.hangman_5,
             R.drawable.hangman_6
     };
-
     private ImageView imageView;
-
-    private HangmanDatabaseHelper dbHelper;
-    private SQLiteDatabase db;
+    private HangmanDatabaseHelper dbHelper;private SQLiteDatabase db;
+    private Button bntPlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
         dbHelper.importDataFromCSV(db, "hangmandata.csv");
 
 
-
         tvHiddenWord = findViewById(R.id.tvHiddenWord);
         tvIncorrectGuesses = findViewById(R.id.tvIncorrectGuesses);
         tvMessage = findViewById(R.id.tvMessage);
@@ -87,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
         btnSubmit = findViewById(R.id.btnSubmit);
         tvScore = findViewById(R.id.tvScore);
         imageView = findViewById(R.id.imageView);
-
 
 
         // Display the initial score at the beginning of the game
@@ -101,8 +77,6 @@ public class MainActivity extends AppCompatActivity {
                 // Reset the score to 0 and update the score display
                 score = 0;
                 tvScore.setText("Score: " + score);
-
-
 
                 initializeGame();
             }
@@ -135,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
 
         initializeGame();
     }
